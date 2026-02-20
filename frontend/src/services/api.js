@@ -8,6 +8,16 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
+
+  // If we're sending FormData (e.g. image upload), let the browser
+  // set the correct multipart boundary instead of forcing JSON.
+  if (config.data instanceof FormData) {
+    if (config.headers) {
+      delete config.headers['Content-Type']
+      delete config.headers['content-type']
+    }
+  }
+
   return config
 })
 
