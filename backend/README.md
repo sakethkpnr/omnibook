@@ -1,46 +1,40 @@
-# EventFlow Django Backend
+# OmniBook Node.js Backend
 
-Django REST Framework backend with MySQL database for Event Booking System.
+## 1. Change DB name
 
-## Quick Start
+Edit `.env`:
 
-1. **Create MySQL database:**
-   ```sql
-   CREATE DATABASE eventflow_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   ```
+```
+DB_NAME=eventflow_db    ← change to your database name
+DB_USER=root
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=3306
+```
 
-2. **Install dependencies:**
-   ```bash
-   python -m venv venv
-   venv\Scripts\activate  # Windows
-   pip install -r requirements.txt
-   ```
+## 2. Create database and tables
 
-3. **Configure environment:**
-   ```bash
-   copy .env.example .env
-   # Edit .env with your MySQL credentials
-   ```
+```bash
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS eventflow_db;"
+mysql -u root -p eventflow_db < init.sql
+```
 
-4. **Run migrations:**
-   ```bash
-   python manage.py makemigrations core
-   python manage.py migrate
-   ```
+## 3. Install and start
 
-5. **Create admin user:**
-   ```bash
-   python manage.py createadmin
-   ```
+```bash
+cd backend-node
+npm install
+node create-admin.js
+npm start
+```
 
-6. **Run server:**
-   ```bash
-   python manage.py runserver 8000
-   ```
+API runs at **http://localhost:8000**
 
-## Default Admin
+## 4. Run frontend
 
-- Username: `admin`
-- Password: `admin123`
+```bash
+cd frontend
+npm run dev
+```
 
-See [SETUP.md](./SETUP.md) for detailed setup instructions.
+Frontend proxies `/api` to `http://localhost:8000` (see `vite.config.js`).
