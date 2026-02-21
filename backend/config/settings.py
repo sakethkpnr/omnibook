@@ -9,7 +9,9 @@ SECRET_KEY = config('SECRET_KEY', default='dev-secret-key-change-in-production-1
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['*']
+# Allow from env in production (e.g. ALB DNS); default * for local dev
+_allowed = config('ALLOWED_HOSTS', default='*')
+ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',')] if _allowed else ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -84,6 +86,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

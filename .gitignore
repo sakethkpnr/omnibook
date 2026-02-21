@@ -33,6 +33,13 @@ frontend/dist/
 *.swp
 *.swo
 
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
+!terraform/*.tfvars.example
+
 # OS
 .DS_Store
 Thumbs.db

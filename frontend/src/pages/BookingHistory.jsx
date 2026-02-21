@@ -9,13 +9,33 @@ import GradientButton from '../components/GradientButton'
 export default function BookingHistory() {
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
+  const [cancellingId, setCancellingId] = useState(null)
 
-  useEffect(() => {
+  const loadBookings = () => {
+    setLoading(true)
     api.get('/bookings/user/')
       .then(({ data }) => setBookings(data))
       .catch(() => setBookings([]))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadBookings()
   }, [])
+
+  const handleCancel = async (b) => {
+    if (!confirm('Cancel this booking? Tickets will be released.')) return
+    setCancellingId(b.id)
+    try {
+      await api.post(`/bookings/${b.id}/cancel/`)
+      loadBookings()
+    } catch (err) {
+      const msg = err.response?.data?.detail || err.response?.data?.message || (Array.isArray(err.response?.data?.detail) ? err.response.data.detail[0] : 'Could not cancel booking.')
+      alert(typeof msg === 'string' ? msg : 'Could not cancel booking.')
+    } finally {
+      setCancellingId(null)
+    }
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
@@ -41,12 +61,29 @@ export default function BookingHistory() {
                   {b.selected_seats?.length > 0 && ` · Seats: ${b.selected_seats.join(', ')}`}
                 </p>
               </div>
-              <div className="flex items-center gap-4">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${b.payment_status === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'}`}>
-                  {b.payment_status}
-                </span>
-                {b.payment_status !== 'SUCCESS' && (
-                  <Link to={`/payment/${b.id}`}><GradientButton className="py-2 text-sm">Pay now</GradientButton></Link>
+              <div className="flex items-center gap-3 flex-wrap">
+                {b.is_cancelled && (
+                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-500/20 text-red-600 dark:text-red-400">
+                    Cancelled
+                  </span>
+                )}
+                {!b.is_cancelled && (
+                  <>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${b.payment_status === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'}`}>
+                      {b.payment_status}
+                    </span>
+                    {b.payment_status !== 'SUCCESS' && (
+                      <Link to={`/payment/${b.id}`}><GradientButton className="py-2 text-sm">Pay now</GradientButton></Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleCancel(b)}
+                      disabled={cancellingId === b.id}
+                      className="px-3 py-2 rounded-xl border-2 border-red-500/50 text-red-500 hover:bg-red-500/10 disabled:opacity-50 text-sm font-medium"
+                    >
+                      {cancellingId === b.id ? 'Cancelling…' : 'Cancel ticket'}
+                    </button>
+                  </>
                 )}
               </div>
             </GlassCard>

@@ -59,7 +59,7 @@ class BookingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = ('id', 'user', 'event', 'event_title', 'event_date', 'event_category', 'quantity', 'selected_seats', 'total_amount', 'payment_status', 'booking_date')
+        fields = ('id', 'user', 'event', 'event_title', 'event_date', 'event_category', 'quantity', 'selected_seats', 'total_amount', 'payment_status', 'is_cancelled', 'booking_date')
         read_only_fields = ('id', 'user', 'booking_date')
 
 
@@ -73,7 +73,7 @@ class AdminBookingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = ('id', 'user', 'user_username', 'user_email', 'event', 'event_title', 'event_date', 'event_price', 'event_category', 'quantity', 'selected_seats', 'total_amount', 'payment_status', 'booking_date')
+        fields = ('id', 'user', 'user_username', 'user_email', 'event', 'event_title', 'event_date', 'event_price', 'event_category', 'quantity', 'selected_seats', 'total_amount', 'payment_status', 'is_cancelled', 'booking_date')
 
 
 class BookingCreateSerializer(serializers.ModelSerializer):

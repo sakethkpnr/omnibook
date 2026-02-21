@@ -43,7 +43,7 @@ class Event(models.Model):
         if not self.seat_plan:
             return None
         booked = set()
-        for b in self.bookings.all():
+        for b in self.bookings.filter(is_cancelled=False):
             for s in (b.selected_seats or []):
                 booked.add(str(s))
         seats = []
@@ -86,6 +86,7 @@ class Booking(models.Model):
     selected_seats = models.JSONField(default=list, blank=True)  # e.g. ["A-1", "A-2"] or ["1", "2"]
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='PENDING')
+    is_cancelled = models.BooleanField(default=False)
     booking_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

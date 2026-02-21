@@ -13,7 +13,7 @@ export default function AdminDashboard({ tab: initialTab = 'overview' }) {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState(initialTab)
-  const [paymentFilter, setPaymentFilter] = useState('all')
+  const [paymentFilter, setPaymentFilter] = useState('all') // 'all' | 'SUCCESS' | 'PENDING' | 'cancelled'
 
   useEffect(() => {
     setTab(initialTab)
@@ -44,9 +44,12 @@ export default function AdminDashboard({ tab: initialTab = 'overview' }) {
     loadData()
   }, [])
 
-  const filteredBookings = paymentFilter === 'all'
-    ? bookings
-    : bookings.filter((b) => b.payment_status === paymentFilter)
+  const filteredBookings =
+    paymentFilter === 'all'
+      ? bookings
+      : paymentFilter === 'cancelled'
+        ? bookings.filter((b) => b.is_cancelled)
+        : bookings.filter((b) => b.payment_status === paymentFilter && !b.is_cancelled)
 
   const handleDeleteEvent = async (e, eventId) => {
     e.preventDefault()
@@ -115,6 +118,10 @@ export default function AdminDashboard({ tab: initialTab = 'overview' }) {
                 <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Payments Pending</p>
                 <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-2">{stats.payment_pending || 0}</p>
               </GlassCard>
+              <GlassCard>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Cancelled Tickets</p>
+                <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-2">{stats.cancelled_bookings ?? 0}</p>
+              </GlassCard>
             </div>
           </>
         )}
@@ -123,8 +130,8 @@ export default function AdminDashboard({ tab: initialTab = 'overview' }) {
           <GlassCard>
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
               <h3 className="font-semibold text-slate-900 dark:text-white">All Bookings</h3>
-              <div className="flex gap-2">
-                {['all', 'SUCCESS', 'PENDING'].map((f) => (
+              <div className="flex gap-2 flex-wrap">
+                {['all', 'SUCCESS', 'PENDING', 'cancelled'].map((f) => (
                   <button
                     key={f}
                     onClick={() => setPaymentFilter(f)}
@@ -132,7 +139,7 @@ export default function AdminDashboard({ tab: initialTab = 'overview' }) {
                       paymentFilter === f ? 'bg-violet-500 text-white' : 'bg-slate-200 dark:bg-slate-700'
                     }`}
                   >
-                    {f === 'all' ? 'All' : f}
+                    {f === 'all' ? 'All' : f === 'cancelled' ? 'Cancelled' : f}
                   </button>
                 ))}
               </div>
@@ -149,7 +156,8 @@ export default function AdminDashboard({ tab: initialTab = 'overview' }) {
                       <th className="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white">Event</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white">Qty</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white">Amount</th>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white">Status</th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white">Payment</th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white">Cancelled</th>
                       <th className="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white">Date</th>
                     </tr>
                   </thead>
@@ -177,6 +185,13 @@ export default function AdminDashboard({ tab: initialTab = 'overview' }) {
                             }`}>
                               {b.payment_status}
                             </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            {b.is_cancelled ? (
+                              <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-600 dark:text-red-400">Cancelled</span>
+                            ) : (
+                              <span className="text-slate-400 dark:text-slate-500 text-xs">—</span>
+                            )}
                           </td>
                           <td className="py-3 px-4 text-slate-500 dark:text-slate-400">{formatDate(b.booking_date)}</td>
                         </tr>

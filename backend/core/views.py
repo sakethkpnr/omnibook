@@ -119,6 +119,24 @@ def complete_payment(request, pk):
     return Response(BookingSerializer(booking).data)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cancel_booking(request, pk):
+    try:
+        booking = Booking.objects.select_related('event').get(pk=pk, user=request.user)
+    except Booking.DoesNotExist:
+        return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+    if booking.is_cancelled:
+        return Response({'detail': 'Booking is already cancelled.'}, status=status.HTTP_400_BAD_REQUEST)
+    booking.is_cancelled = True
+    booking.save(update_fields=['is_cancelled'])
+    event = booking.event
+    if not event.seat_plan:
+        event.available_tickets += booking.quantity
+        event.save(update_fields=['available_tickets'])
+    return Response(BookingSerializer(booking).data)
+
+
 # ----- Admin -----
 class AdminEventListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsAdminRole]
@@ -170,9 +188,10 @@ def admin_stats(request):
     from django.db.models import Sum, F, Value
     from django.db.models.functions import Coalesce
     total_bookings = Booking.objects.count()
-    payment_success = Booking.objects.filter(payment_status='SUCCESS').count()
-    payment_pending = Booking.objects.filter(payment_status='PENDING').count()
-    qs = Booking.objects.filter(payment_status='SUCCESS')
+    payment_success = Booking.objects.filter(payment_status='SUCCESS', is_cancelled=False).count()
+    payment_pending = Booking.objects.filter(payment_status='PENDING', is_cancelled=False).count()
+    cancelled_bookings = Booking.objects.filter(is_cancelled=True).count()
+    qs = Booking.objects.filter(payment_status='SUCCESS', is_cancelled=False)
     rev = qs.aggregate(
         total=Sum(Coalesce('total_amount', F('quantity') * F('event__price')))
     )['total']
@@ -182,5 +201,6 @@ def admin_stats(request):
         'total_events': Event.objects.count(),
         'payment_success': payment_success,
         'payment_pending': payment_pending,
+        'cancelled_bookings': cancelled_bookings,
         'total_revenue': str(rev) if rev is not None else '0.00',
     })

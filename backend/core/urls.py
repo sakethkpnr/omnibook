@@ -9,6 +9,7 @@ urlpatterns = [
     path('book/', views.book),
     path('bookings/user/', views.UserBookingList.as_view()),
     path('bookings/<int:pk>/complete_payment/', views.complete_payment),
+    path('bookings/<int:pk>/cancel/', views.cancel_booking),
     path('admin/events/', views.AdminEventListCreate.as_view()),
     path('admin/events/<int:pk>/', views.AdminEventUpdate.as_view()),
     path('admin/events/cancel/', views.admin_cancel_event),

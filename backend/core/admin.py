@@ -18,5 +18,5 @@ class EventAdmin(admin.ModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ('user', 'event', 'quantity', 'payment_status', 'booking_date')
-    list_filter = ('payment_status',)
+    list_display = ('user', 'event', 'quantity', 'payment_status', 'is_cancelled', 'booking_date')
+    list_filter = ('payment_status', 'is_cancelled')
